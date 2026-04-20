@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AX — Priorização de Riscos</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0f1a;
+  --card: #111827;
+  --card-hover: #1a2332;
+  --border: #1e2d3d;
+  --gold: #c8963e;
+  --gold-light: #e8b86a;
+  --text: #e2e8f0;
+  --text-muted: #94a3b8;
+  --red: #ef4444;
+  --orange: #f97316;
+  --yellow: #eab308;
+  --green: #22c55e;
+  --blue: #3b82f6;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+.container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 20px 16px 100px;
+}
+
+header {
+  text-align: center;
+  padding: 40px 0 30px;
+}
+
+header h1 {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, var(--gold), var(--gold-light));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 8px;
+}
+
+header p {
+  color: var(--text-muted);
+  font-size: 14px;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 24px;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tab-btn.active {
+  background: var(--gold);
+  color: #000;
+}
+
+.tab-btn:hover:not(.active) {
+  color: var(--text);
+}
+
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+.intro-card {
+  background: linear-gradient(135deg, #1a1f2e, #0f1520);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 32px;
+}
+
+.intro-card h2 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--gold);
+  margin-bottom: 12px;
+}
+
+.intro-card p {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.name-input {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.name-input label {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.name-input input {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.name-input input:focus {
+  border-color: var(--gold);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 32px 0 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.section-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.section-header h3 {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.badge-1a { background: #f97316; color: #000; }
+.badge-1b { background: #22c55e; color: #000; }
+.badge-2a { background: #f97316; color: #000; }
+.badge-2b { background: #3b82f6; color: #fff; }
+.badge-2c { background: #8b5cf6; color: #fff; }
+.badge-3 { background: #ec4899; color: #fff; }
+.badge-4 { background: #06b6d4; color: #000; }
+.badge-t { background: #64748b; color: #fff; }
+
+.risk-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 10px;
+  transition: all 0.2s;
+}
+
+.risk-card:hover {
+  background: var(--card-hover);
+}
+
+.risk-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.risk-id {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--gold);
+  padding: 2px 8px;
+  background: rgba(200, 150, 62, 0.15);
+  border-radius: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.risk-text {
+  font-size: 14px;
+  font-weight: 500;
+  flex: 1;
+}
+
+.risk-workshop-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 4px;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.color-red { background: var(--red); }
+.color-orange { background: var(--orange); }
+.color-yellow { background: var(--yellow); }
+.color-green { background: var(--green); }
+.color-gray { background: #475569; }
+
+.rating-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rating-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-right: 4px;
+  white-space: nowrap;
+}
+
+.rating-btn {
+  width: 40px;
+  height: 34px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rating-btn:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.rating-btn.selected-1 { background: var(--green); color: #000; border-color: var(--green); }
+.rating-btn.selected-2 { background: #84cc16; color: #000; border-color: #84cc16; }
+.rating-btn.selected-3 { background: var(--yellow); color: #000; border-color: var(--yellow); }
+.rating-btn.selected-4 { background: var(--orange); color: #000; border-color: var(--orange); }
+.rating-btn.selected-5 { background: var(--red); color: #fff; border-color: var(--red); }
+
+.legend {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--text-muted);
+  padding: 0 2px;
+  margin-top: 4px;
+}
+
+.progress-bar-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--border);
+  z-index: 100;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold), var(--gold-light));
+  transition: width 0.3s ease;
+  width: 0%;
+}
+
+.submit-area {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(0deg, var(--bg) 70%, transparent);
+  padding: 20px 16px 24px;
+  text-align: center;
+  z-index: 50;
+}
+
+.submit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 32px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--gold), #b8862e);
+  color: #000;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 24px rgba(200, 150, 62, 0.3);
+}
+
+.submit-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 32px rgba(200, 150, 62, 0.4);
+}
+
+.submit-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.progress-text {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  z-index: 200;
+  overflow-y: auto;
+  padding: 40px 16px;
+}
+
+.overlay.visible { display: block; }
+
+.summary-card {
+  max-width: 600px;
+  margin: 0 auto;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 32px 24px;
+}
+
+.summary-card h2 {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--gold);
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.summary-card .subtitle {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+  margin-bottom: 24px;
+}
+
+.summary-ranking {
+  list-style: none;
+}
+
+.summary-ranking li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+
+.summary-ranking li:last-child { border: none; }
+
+.rank-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.rank-1 { background: var(--red); color: #fff; }
+.rank-2 { background: var(--orange); color: #000; }
+.rank-3 { background: var(--yellow); color: #000; }
+.rank-other { background: var(--border); color: var(--text-muted); }
+
+.rank-score {
+  font-weight: 700;
+  color: var(--gold);
+  margin-left: auto;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.summary-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.summary-actions button {
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+}
+
+.btn-whatsapp { background: #25d366; color: #fff; }
+.btn-copy { background: var(--border); color: var(--text); }
+.btn-back {
+  background: transparent;
+  border: 1px solid var(--border) !important;
+  color: var(--text-muted);
+}
+.btn-save {
+  background: linear-gradient(135deg, var(--gold), #b8862e);
+  color: #000;
+  font-weight: 700;
+}
+
+.summary-actions button:hover {
+  transform: translateY(-1px);
+}
+
+.results-header {
+  text-align: center;
+  padding: 20px 0;
+}
+
+.results-header h2 {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--gold);
+  margin-bottom: 8px;
+}
+
+.results-header p {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.voter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin: 16px 0 24px;
+}
+
+.voter-chip {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  background: rgba(200, 150, 62, 0.15);
+  color: var(--gold);
+  border: 1px solid rgba(200, 150, 62, 0.3);
+}
+
+.consolidated-list {
+  list-style: none;
+}
+
+.consolidated-item {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.cons-rank {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.cons-body { flex: 1; }
+
+.cons-id {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--gold);
+  padding: 2px 8px;
+  background: rgba(200, 150, 62, 0.15);
+  border-radius: 4px;
+  margin-right: 8px;
+}
+
+.cons-text {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.cons-detail {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
+.cons-avg {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--gold);
+  flex-shrink: 0;
+  min-width: 50px;
+  text-align: center;
+}
+
+.no-votes {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.refresh-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  margin: 16px auto;
+  transition: all 0.2s;
+}
+
+.refresh-btn:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.toast {
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--green);
+  color: #000;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 14px;
+  opacity: 0;
+  transition: all 0.3s;
+  z-index: 300;
+  pointer-events: none;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(0,0,0,0.2);
+  border-top-color: #000;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 480px) {
+  .rating-btn { width: 36px; height: 32px; font-size: 12px; }
+  .risk-text { font-size: 13px; }
+  header h1 { font-size: 24px; }
+}
+</style>
+</head>
+<body>
+
+<div class="progress-bar-container">
+  <div class="progress-bar" id="progressBar"></div>
+</div>
+
+<div class="container">
+  <header>
+    <h1>AX — Priorizar Riscos</h1>
+    <p>Avalie cada risco de 1 (baixo) a 5 (critico). Seus votos serao consolidados com os da equipe.</p>
+  </header>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('vote')">Votar</button>
+    <button class="tab-btn" onclick="switchTab('results')">Resultados</button>
+  </div>
+
+  <div class="tab-content active" id="tab-vote">
+    <div class="intro-card">
+      <h2>Como funciona</h2>
+      <p>Para cada risco, clique no numero que representa a urgencia de esclarecer esse risco com um experimento. O circulo colorido mostra a avaliacao da oficina de 20/04. Ao terminar, seus votos serao salvos automaticamente e consolidados com os da equipe.</p>
+      <div class="name-input">
+        <label>Seu nome:</label>
+        <input type="text" id="voterName" placeholder="Ex: Aluisio" autocomplete="name">
+      </div>
+    </div>
+
+    <div id="risksContainer"></div>
+  </div>
+
+  <div class="tab-content" id="tab-results">
+    <div class="results-header">
+      <h2>Resultados Consolidados</h2>
+      <p id="resultsSubtitle">Carregando...</p>
+    </div>
+    <div class="voter-chips" id="voterChips"></div>
+    <button class="refresh-btn" onclick="loadResults()">&#8635; Atualizar resultados</button>
+    <ul class="consolidated-list" id="consolidatedList"></ul>
+  </div>
+</div>
+
+<div class="submit-area" id="submitArea">
+  <div class="progress-text" id="progressText">0 de 24 avaliados</div>
+  <button class="submit-btn" id="submitBtn" disabled onclick="showSummary()">
+    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    Ver ranking e enviar
+  </button>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="summary-card">
+    <h2>Seu Ranking</h2>
+    <p class="subtitle" id="summarySubtitle"></p>
+    <ol class="summary-ranking" id="summaryList"></ol>
+    <div class="summary-actions">
+      <button class="btn-save" id="saveBtn" onclick="saveVotes()">Salvar votos</button>
+      <button class="btn-whatsapp" onclick="sendWhatsApp()">Enviar via WhatsApp</button>
+      <button class="btn-copy" onclick="copyText()">Copiar texto</button>
+      <button class="btn-back" onclick="closeSummary()">Voltar e ajustar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const BLOB_ID = "019dab6e-da76-79e7-8e5a-6372fd045328";
+const BLOB_URL = `https://jsonblob.com/api/jsonBlob/${BLOB_ID}`;
+
+const RISKS = [
+  { id: "R1", model: "1A", section: "1A Fundos", badge: "badge-1a", color: "color-orange",
+    text: "Fundos remuneram mal — \"pagam migalha\" (opiniao do Nilson)" },
+  { id: "R2", model: "1A", section: "1A Fundos", badge: "badge-1a", color: "color-orange",
+    text: "Criar fundo proprio exige assumir processo judicial (AX nao quer)" },
+  { id: "R3", model: "1B", section: "1B Detentor de Creditos", badge: "badge-1b", color: "color-yellow",
+    text: "Limitacao de tokens (100/dia por CPF no PJE) impede varredura ampla" },
+  { id: "R4", model: "1B", section: "1B Detentor de Creditos", badge: "badge-1b", color: "color-yellow",
+    text: "Volume insuficiente — pode nao haver creditos qualificados em quantidade que justifique" },
+  { id: "R5", model: "1B", section: "1B Detentor de Creditos", badge: "badge-1b", color: "color-orange",
+    text: "Cliente nao engaja — detentor de credito nao atende, nao responde, nao quer ouvir" },
+  { id: "R6", model: "1B", section: "1B Detentor de Creditos", badge: "badge-1b", color: "color-yellow",
+    text: "Desagio nao aceito — cliente rejeita o desconto necessario para viabilizar" },
+  { id: "R7", model: "1B", section: "1B Detentor de Creditos", badge: "badge-1b", color: "color-yellow",
+    text: "Processo pouco automatizado — muita revisao humana inviabiliza escala" },
+  { id: "R8", model: "2A", section: "2A Hapvida", badge: "badge-2a", color: "color-yellow",
+    text: "Nova VP juridica pode mudar prioridades ou reduzir interesse na parceria" },
+  { id: "R9", model: "2B", section: "2B Busca por Empresas", badge: "badge-2b", color: "color-red",
+    text: "Nao conseguimos chegar nos decisores — sem canal para diretores juridicos de medias/grandes empresas" },
+  { id: "R10", model: "2B", section: "2B Busca por Empresas", badge: "badge-2b", color: "color-red",
+    text: "Desconfianca — empresa nao acredita que escritorio externo resolve o que o juridico interno nao resolve" },
+  { id: "R11", model: "2B", section: "2B Busca por Empresas", badge: "badge-2b", color: "color-orange",
+    text: "Empresa nao enxerga volume de processos como problema — \"e assim que as coisas sao\"" },
+  { id: "R12", model: "2B", section: "2B Busca por Empresas", badge: "badge-2b", color: "color-orange",
+    text: "Setores prioritarios indefinidos — modelo generico demais, nao sabemos onde focar" },
+  { id: "R13", model: "2B", section: "2B Busca por Empresas", badge: "badge-2b", color: "color-yellow",
+    text: "Falta clareza no modelo de receita — valores, margens e forma de cobranca nao definidos" },
+  { id: "R14", model: "2C", section: "2C Busca por Casos", badge: "badge-2c", color: "color-red",
+    text: "Barreira etica (OAB): nao pode abordar parte que ja tem advogado constituido" },
+  { id: "R15", model: "2C", section: "2C Busca por Casos", badge: "badge-2c", color: "color-orange",
+    text: "Custo de aquisicao alto — cada caso e uma venda individual, funil estreito" },
+  { id: "R16", model: "2C", section: "2C Busca por Casos", badge: "badge-2c", color: "color-yellow",
+    text: "Inadimplencia — cliente pessoa fisica/empresa menor tem risco alto de nao pagar" },
+  { id: "R17", model: "2C", section: "2C Busca por Casos", badge: "badge-2c", color: "color-orange",
+    text: "Desconfianca na abordagem nao solicitada — pessoa desconfia de ajuda juridica espontanea" },
+  { id: "R18", model: "2C", section: "2C Busca por Casos", badge: "badge-2c", color: "color-orange",
+    text: "Limitacao de tokens para acessar autos do processo (mesmo problema do 1B)" },
+  { id: "R19", model: "3A", section: "3A/3D Impulsionador", badge: "badge-3", color: "color-red",
+    text: "Canibalizacao do proprio escritorio — formar concorrentes que disputam os mesmos casos" },
+  { id: "R20", model: "3A", section: "3A/3D Impulsionador", badge: "badge-3", color: "color-orange",
+    text: "Desconfianca institucional — escritorio vendendo para escritorio gera estranheza" },
+  { id: "R21", model: "3A", section: "3A/3D Impulsionador", badge: "badge-3", color: "color-yellow",
+    text: "Rentabilidade incerta — pode custar caro montar e nao ter retorno suficiente" },
+  { id: "R22", model: "3D", section: "3A/3D Impulsionador", badge: "badge-3", color: "color-yellow",
+    text: "Complexidade de montar rede + mesmos riscos de canibalizacao do 3A" },
+  { id: "R23", model: "4", section: "4 Plataforma Conflitos", badge: "badge-4", color: "color-gray",
+    text: "Viabilidade totalmente desconhecida — conceito embrionario, sem canvas definido" },
+  { id: "R24", model: "T", section: "Transversal", badge: "badge-t", color: "color-yellow",
+    text: "Grau de automacao da analise e insuficiente — afeta escala de 1B, 2B e 2C simultaneamente" }
+];
+
+const votes = {};
+let currentSection = "";
+let currentTab = "vote";
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  if (tab === 'vote') {
+    document.querySelectorAll('.tab-btn')[0].classList.add('active');
+    document.getElementById('tab-vote').classList.add('active');
+    document.getElementById('submitArea').style.display = '';
+    document.getElementById('progressBar').parentElement.style.display = '';
+  } else {
+    document.querySelectorAll('.tab-btn')[1].classList.add('active');
+    document.getElementById('tab-results').classList.add('active');
+    document.getElementById('submitArea').style.display = 'none';
+    document.getElementById('progressBar').parentElement.style.display = 'none';
+    loadResults();
+  }
+}
+
+function renderRisks() {
+  const container = document.getElementById("risksContainer");
+  let html = "";
+  let sec = "";
+  RISKS.forEach((r, i) => {
+    if (r.section !== sec) {
+      sec = r.section;
+      html += `<div class="section-header">
+        <span class="section-badge ${r.badge}">${r.model}</span>
+        <h3>${r.section}</h3>
+      </div>`;
+    }
+    html += `<div class="risk-card" id="card-${r.id}">
+      <div class="risk-top">
+        <span class="risk-id">${r.id}</span>
+        <span class="risk-text">${r.text}</span>
+        <span class="risk-workshop-color ${r.color}" title="Cor da oficina"></span>
+      </div>
+      <div class="rating-row">
+        <span class="rating-label">Urgencia:</span>
+        ${[1,2,3,4,5].map(n =>
+          `<button class="rating-btn" data-risk="${r.id}" data-value="${n}" onclick="rate('${r.id}', ${n}, this)">${n}</button>`
+        ).join("")}
+      </div>
+      <div class="legend"><span>Baixo</span><span>Medio</span><span>Critico</span></div>
+    </div>`;
+  });
+  container.innerHTML = html;
+}
+
+function rate(riskId, value, btn) {
+  votes[riskId] = value;
+  const card = document.getElementById(`card-${riskId}`);
+  card.querySelectorAll(".rating-btn").forEach(b => { b.className = "rating-btn"; });
+  btn.className = `rating-btn selected-${value}`;
+  updateProgress();
+}
+
+function updateProgress() {
+  const total = RISKS.length;
+  const done = Object.keys(votes).length;
+  const pct = (done / total) * 100;
+  document.getElementById("progressBar").style.width = pct + "%";
+  document.getElementById("progressText").textContent = `${done} de ${total} avaliados`;
+  document.getElementById("submitBtn").disabled = done < total;
+}
+
+function getRanking() {
+  return RISKS.map(r => ({ ...r, score: votes[r.id] || 0 }))
+    .sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
+}
+
+function showSummary() {
+  const name = document.getElementById("voterName").value.trim() || "Anonimo";
+  const ranking = getRanking();
+  document.getElementById("summarySubtitle").textContent = `Votacao de ${name} — ${new Date().toLocaleDateString("pt-BR")}`;
+  const list = document.getElementById("summaryList");
+  list.innerHTML = ranking.map((r, i) => {
+    const rankClass = i < 1 ? "rank-1" : i < 3 ? "rank-2" : i < 5 ? "rank-3" : "rank-other";
+    return `<li>
+      <span class="rank-num ${rankClass}">${i + 1}</span>
+      <span><strong>${r.id}</strong> ${r.text}</span>
+      <span class="rank-score">${r.score}/5</span>
+    </li>`;
+  }).join("");
+  document.getElementById("overlay").classList.add("visible");
+}
+
+function closeSummary() {
+  document.getElementById("overlay").classList.remove("visible");
+}
+
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 3000);
+}
+
+async function saveVotes() {
+  const name = document.getElementById("voterName").value.trim();
+  if (!name) { showToast("Preencha seu nome antes de salvar!"); return; }
+  const btn = document.getElementById("saveBtn");
+  btn.innerHTML = '<span class="spinner"></span> Salvando...';
+  btn.disabled = true;
+  try {
+    const res = await fetch(BLOB_URL, {
+      headers: { "Content-Type": "application/json", "Accept": "application/json" }
+    });
+    const data = await res.json();
+    const voterData = {};
+    RISKS.forEach(r => { voterData[r.id] = votes[r.id] || 0; });
+    voterData._timestamp = new Date().toISOString();
+    data.voters[name] = voterData;
+    await fetch(BLOB_URL, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify(data)
+    });
+    btn.innerHTML = "Salvo!";
+    showToast(`Votos de ${name} salvos com sucesso!`);
+    setTimeout(() => { btn.innerHTML = "Salvar votos"; btn.disabled = false; }, 2000);
+  } catch (err) {
+    console.error("Erro ao salvar:", err);
+    btn.innerHTML = "Erro — tente novamente";
+    btn.disabled = false;
+    showToast("Erro ao salvar. Verifique sua conexao.");
+  }
+}
+
+async function loadResults() {
+  const subtitle = document.getElementById("resultsSubtitle");
+  const chips = document.getElementById("voterChips");
+  const list = document.getElementById("consolidatedList");
+  subtitle.textContent = "Carregando...";
+  chips.innerHTML = "";
+  list.innerHTML = '<div class="no-votes"><span class="spinner"></span></div>';
+  try {
+    const res = await fetch(BLOB_URL, {
+      headers: { "Content-Type": "application/json", "Accept": "application/json" }
+    });
+    const data = await res.json();
+    const voterNames = Object.keys(data.voters || {});
+    if (voterNames.length === 0) {
+      subtitle.textContent = "Nenhum voto registrado ainda";
+      list.innerHTML = '<div class="no-votes">Ninguem votou ainda. Compartilhe o link!</div>';
+      return;
+    }
+    subtitle.textContent = `${voterNames.length} voto${voterNames.length > 1 ? 's' : ''} registrado${voterNames.length > 1 ? 's' : ''}`;
+    chips.innerHTML = voterNames.map(n => `<span class="voter-chip">${n}</span>`).join("");
+    const riskAverages = RISKS.map(r => {
+      const scores = voterNames.map(v => data.voters[v][r.id] || 0);
+      const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+      const detail = voterNames.map(v => `${v}: ${data.voters[v][r.id] || 0}`).join(" | ");
+      return { ...r, avg, detail, scores };
+    }).sort((a, b) => b.avg - a.avg || a.id.localeCompare(b.id));
+    list.innerHTML = riskAverages.map((r, i) => {
+      const rankClass = i < 1 ? "rank-1" : i < 3 ? "rank-2" : i < 5 ? "rank-3" : "rank-other";
+      return `<li class="consolidated-item">
+        <span class="cons-rank ${rankClass}">${i + 1}</span>
+        <div class="cons-body">
+          <div><span class="cons-id">${r.id}</span> <span class="cons-text">${r.text}</span></div>
+          <div class="cons-detail">${r.detail}</div>
+        </div>
+        <span class="cons-avg">${r.avg.toFixed(1)}</span>
+      </li>`;
+    }).join("");
+  } catch (err) {
+    console.error("Erro ao carregar:", err);
+    subtitle.textContent = "Erro ao carregar resultados";
+    list.innerHTML = '<div class="no-votes">Erro de conexao. Tente novamente.</div>';
+  }
+}
+
+function generateText() {
+  const name = document.getElementById("voterName").value.trim() || "Anonimo";
+  const ranking = getRanking();
+  const now = new Date().toLocaleDateString("pt-BR");
+  let msg = `*AX Riscos — Voto de ${name}* (${now})\n\n`;
+  msg += `*TOP 5 mais urgentes:*\n`;
+  ranking.slice(0, 5).forEach((r, i) => {
+    const emoji = ["\u{1F534}", "\u{1F7E0}", "\u{1F7E1}", "\u{1F7E2}", "\u{1F535}"][i];
+    msg += `${emoji} ${r.id} (${r.score}/5): ${r.text}\n`;
+  });
+  msg += `\n*Ranking completo:*\n`;
+  ranking.forEach((r, i) => {
+    msg += `${i+1}. ${r.id}=${r.score} `;
+    if ((i + 1) % 6 === 0) msg += "\n";
+  });
+  return msg;
+}
+
+function sendWhatsApp() {
+  const text = encodeURIComponent(generateText());
+  window.open(`https://wa.me/?text=${text}`, "_blank");
+}
+
+function copyText() {
+  const text = generateText();
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector(".btn-copy");
+    btn.textContent = "Copiado!";
+    setTimeout(() => btn.textContent = "Copiar texto", 2000);
+  });
+}
+
+renderRisks();
+updateProgress();
+</script>
+</body>
+</html>
