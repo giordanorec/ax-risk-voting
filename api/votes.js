@@ -2,7 +2,7 @@
 // Resolve o problema de CORS: a página chama /api/votes (mesmo domínio),
 // e este servidor faz a requisição para o jsonblob (servidor→servidor, sem CORS).
 
-const BLOB_URL = "https://jsonblob.com/api/jsonBlob/019dab6e-da76-79e7-8e5a-6372fd045328";
+const BLOB_URL = "https://jsonblob.com/api/jsonBlob/019dceb0-d630-7368-a36c-a76cf96ee51d";
 
 export default async function handler(req, res) {
   // Permitir CORS de qualquer origem (para dev local também funcionar)
